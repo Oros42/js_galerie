@@ -1,0 +1,870 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+	<title>Galerie</title>
+
+ 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<meta http-equiv="Content-Language" content="fr" />
+	<style type="text/css">
+		body {
+			margin: 0 ;
+			padding: 0 ;
+			font: 0.9em Georgia, serif ;
+			background-color: black;
+    		color: #AAAAAA;
+		}
+		.center{
+			text-align: center;
+		}
+		#galerie_mini {
+			position: fixed;
+			bottom: 0px;
+			top: 42px;
+			margin: 0 ;
+			padding: 0 ;
+			overflow:scroll;overflow-y:scroll;
+			overflow-x:hidden;
+		}
+		.back{ 
+			font-family: "Arial", sans-serif;
+			font-size:25pt;
+			text-decoration:none;
+		}
+		.link_change_img{ 
+			font-family: "Arial", sans-serif;
+			font-size:40pt;
+			text-decoration:none;
+			z-index: 10;
+		}
+
+		#all_img {
+			list-style-type: none ;
+			padding-left: 0;
+    		padding-right: 0;
+		}
+		#all_img li	{
+			list-style-type: none ;
+			float: left;
+		}
+		#all_img li a img {
+			margin: 2px 2px ;
+		}
+		#top_menu {
+			position: fixed;
+			top: 0px;
+			height: 20px;
+		}
+		a {
+			color: red;
+		}
+		a:hover {
+			color: #CC0000;
+		}
+		div#galerie {
+			position: fixed;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			width:230px;
+		}
+		
+		ul#galerie_mini {
+			position: fixed;
+			bottom: 140px;
+			top: 0;
+			margin: 0 ;
+			padding: 0 ;
+			list-style-type: none ;
+			overflow:scroll;overflow-y:scroll;
+			overflow-x:hidden;
+
+		}
+			
+		ul#galerie_mini li a img {
+			margin: 2px 1px ;
+			border: 1px solid #dcb ;
+		}
+		
+		div#image_grande {
+			position: fixed;
+			top: 0;
+			left: 0px;
+			bottom: 0px;
+			right: 230px;
+			text-align:right;
+		}
+
+		dl#photo {
+			clear: both ;
+			margin: 0 auto ;
+		}
+		
+		dl#photo dt {
+			font: italic 2.5em/1.5em Georgia, serif ;
+			color: #dcb ;
+		}
+		
+		dl#photo dd {
+			margin: 0 ;
+		}
+		
+		dl#photo img {
+			border: 1px solid #dcb ;
+		}
+		#boutons {
+			position: fixed;
+			bottom: 0px;
+			height: 140px;
+    		margin-top: 0;
+		}
+		#url_txt {
+			position: fixed;
+			width: 200px;
+			word-wrap: break-word;
+		}
+		#link_rm {
+			position:absolute;
+			right:0px;
+			top:30px;
+		}
+		#link_fav {
+			position:absolute;
+			top:35px;
+		}
+		#link_back {
+			position:absolute;
+			top:10px;
+			height: 60px;
+		}
+		a img{
+			border: none;
+		}
+		#galerie_more{
+			float: left;
+			margin-top: 10px;
+    		text-align: center;
+    		width: 100%;
+    	}
+		#galerie_more a{
+    		background-color: #333333;
+		    padding: 10px 84px;
+		}
+
+		table a{
+			position: relative;
+    		background-color: #333333;
+		    padding: 1px 84px;
+
+		}
+		table a:hover{
+    		background-color: #555555;
+		    padding: 1px 84px;
+		}
+		table {
+			margin-left: auto;
+    		margin-right: auto;
+		}
+	</style>
+</head>
+<body>
+	<noscript>Pour affichier la galerie, merci d'activer le javascript.</noscript>
+	<script type="text/javascript">
+
+
+		/* ######################################################################################################################
+		* 			Functions
+		* ###################################################################################################################### */
+
+		function getXMLHttp(){
+			var xmlHttp;
+			try{
+				xmlHttp = new XMLHttpRequest();
+			}catch(e){
+				try{
+					xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+				}catch(e){
+					try{
+						xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+					}catch(e){
+						alert("Your browser does not support AJAX!");
+						return false;
+					}
+				}
+			}
+			return xmlHttp;
+		}
+
+		
+		function get_file(name, func, args){
+			file_downloding=true;
+			if(liste_index[name] == undefined) {
+				var xmlHttp = getXMLHttp();
+				xmlHttp.onreadystatechange = function(){
+					if(xmlHttp.readyState == 4){
+						liste_index[name] = eval(xmlHttp.responseText);
+						file_downloding=false;
+						unlock_get_liste=true;
+						if(func!=null){
+							func(args, 1);
+						}
+					}
+				};
+				xmlHttp.open("GET", folder+"liste_"+name+".txt", true);	
+			 	xmlHttp.send(null);
+			 }else{
+			 	file_downloding=false;
+				unlock_get_liste=true;
+				if(func!=null){
+					func(args, 1);
+				}
+			 }
+		}
+
+
+		function next_galerie(func, arg){
+			index_liste_nb++;
+			if(liste_nb[index_liste_nb]!=undefined && liste_nb[index_liste_nb]!=false) {
+				// série suivante
+				folder=liste_nb[index_liste_nb][0];
+				liste_cpt_next = -1;
+				liste_serie_index_next = 1;
+				liste_cpt_prev = 0;
+				liste_serie_index_prev = 1;
+				liste_index=[];
+				get_file(liste_serie_index_next, func, arg);
+				if(document.getElementById('galerie_more') != undefined) {
+					document.getElementById('galerie_more').hidden=false;	
+				}
+				document.title = liste_nb[index_liste_nb][0].substr(2,liste_nb[index_liste_nb][0].length-3);
+				
+			}else{
+				// fin de la galerie, plus d'autre série
+				index_liste_nb--;
+				unlock_get_liste = true;
+				if(document.getElementById('galerie_more') != undefined) {
+					document.getElementById('galerie_more').hidden=true;
+				}
+			}
+		}
+
+		function get_next_img(func, img_to_add){
+			if(unlock_get_liste){
+				liste_cpt_next++
+				if(liste_cpt_next>=liste_index[liste_serie_index_next].length-1){
+					if(liste_nb[index_liste_nb][1]>liste_serie_index_next){
+						liste_cpt_next=0;
+						liste_serie_index_next++;
+						if(liste_index[liste_serie_index_next]==undefined){
+							liste_cpt_next--;
+							unlock_get_liste = false;
+							get_file(liste_serie_index_next, func, img_to_add);
+							return -1;
+						}else{
+							return liste_index[liste_serie_index_next][liste_cpt_next];
+						}
+					}else{
+						unlock_get_liste = false;
+						next_galerie(func, 30);
+						return -1;
+					}
+				}else{
+					return liste_index[liste_serie_index_next][liste_cpt_next];
+				}				
+			}else{
+				return -1;
+			}
+
+		}
+
+
+		function get_prev_img(func, img_to_add){
+			if(unlock_get_liste){
+				liste_cpt_prev--
+				if(liste_cpt_prev<0){
+					if(liste_serie_index_prev>1){ //FIXME
+						liste_cpt_prev=99;
+						liste_serie_index_prev--;
+						if(liste_index[liste_serie_index_prev]==undefined){
+							liste_cpt_prev++;
+							unlock_get_liste = false;
+							get_file(liste_serie_index_prev, func, img_to_add);
+							return -1;
+						}else{
+							return liste_index[liste_serie_index_prev][liste_cpt_prev];
+						}
+					}else {
+						liste_cpt_prev=0;
+						return -1;
+					}
+				}else{
+					return liste_index[liste_serie_index_prev][liste_cpt_prev];
+				}				
+			}else{
+				return -1;
+			}
+
+		}
+
+		function change_page(url){
+			window.location.hash=url;
+			init();
+		}
+
+
+
+		/* ######################################################################################################################
+		* 			Functions	page galerie
+		* ###################################################################################################################### */
+
+
+		function load_mini(nb_img, force){
+			if(unlock || force){
+				unlock = false;
+				if(can_load){
+					var url = get_next_img(load_mini, nb_img-1);
+					for(var i=1; i<nb_img && url != -1; i++){
+						if(liste_serie_index_next*100 - 100 +liste_cpt_next+1 == 1){
+							var img_li = document.createElement('li');
+							img_li.setAttribute("style","margin-left:20px;margin-right:20px;");
+							img_li.innerHTML = '<br/></br/>'+folder.substr(2,folder.length-3);
+							document.getElementById('all_img').appendChild(img_li);
+						}
+
+						var img_li = document.createElement('li');
+						img_li.innerHTML = '<a href="'+index_file_name+'#s'+index_liste_nb+'-'+(liste_serie_index_next*100 - 100 +liste_cpt_next+1)+'" title="'+url+'" onclick="change_page(\'s'+index_liste_nb+'-'+(liste_serie_index_next*100 - 100 +liste_cpt_next+1)+'\'); return false;"><img src="'+folder+(liste_nb[index_liste_nb][4]!=""?liste_nb[index_liste_nb][4]+"/":"")+url+'" alt="Chargement..." height="200px"/></a> ';
+						document.getElementById('all_img').appendChild(img_li);
+						url = get_next_img(load_mini, nb_img-i);
+					}				
+				}
+
+				var old_height = document.getElementById('galerie_mini').scrollHeight;
+				var nb=1;
+			//	if(document.getElementById('all_img').children.length >150){
+				if(document.getElementById('galerie_mini').scrollTop > screen.height*2) {
+					while(document.getElementById('galerie_mini').scrollTop > screen.height) {
+						//document.getElementById('all_img').children[i].children[0].children[0].src="./animu.ru-bakemonogatari_00001.jpg"
+						document.getElementById('all_img').removeChild(document.getElementById('all_img').children[0]);
+						liste_cpt_prev++;
+						if(liste_cpt_prev>=100){
+							liste_cpt_prev>0;
+							liste_serie_index_prev++;
+						}
+					}
+					can_reload=true;
+					document.getElementById('galerie_mini').scrollTop -= old_height - document.getElementById('galerie_mini').scrollHeight;
+				}
+				unlock = true;
+				return true;
+			}else{
+				return false;	
+			}
+			
+		}
+
+		
+		function reload_mini(nb_img, force){
+			if(can_reload && (unlock || force)){
+				unlock = false;
+				var old_height = document.getElementById('galerie_mini').scrollHeight;
+				if(can_load){
+					var url = get_prev_img(reload_mini, nb_img-1);
+					for(var i=1; i<nb_img && url != -1; i++){
+						var img_li = document.createElement('li');
+						img_li.innerHTML = '<a href="'+index_file_name+'#s'+index_liste_nb+'-'+(liste_serie_index_next*100 - 100 +liste_cpt_next+1)+'" title="'+url+'"  onclick="change_page(\'s'+index_liste_nb+'-'+(liste_serie_index_next*100 - 100 +liste_cpt_next+1)+'\'); return false;"><img src="'+folder+(liste_nb[index_liste_nb][4]!=""?liste_nb[index_liste_nb][4]+"/":"")+url+'" alt="Chargement..." height="200px"/></a> ';
+							document.getElementById('all_img').insertBefore(img_li, document.getElementById('all_img').children[0]);
+						url = get_next_img(load_mini, nb_img-i);
+					}				
+				}
+
+				var nb=1;
+				if(document.getElementById('galerie_mini').scrollTop > screen.height*2) {
+					while(document.getElementById('galerie_mini').scrollTop > screen.height) {
+						document.getElementById('all_img').removeChild(document.getElementById('all_img').children[document.getElementById('all_img').children.length-1]);
+						liste_cpt_next--;
+						if(liste_cpt_next<0){
+							liste_cpt_next=100;
+							liste_serie_index_next--;
+							if(liste_serie_index_next<0){
+								liste_serie_index_next=1;
+							}
+						}
+					}
+				}
+				document.getElementById('galerie_mini').scrollTop += document.getElementById('galerie_mini').scrollHeight-old_height;
+				unlock = true;
+				return true;
+			}else{
+				return false;	
+			}
+		}
+
+		function up_link1(num_galerie){
+			document.getElementById('start_img').placeholder="1 à "+liste_nb[num_galerie][2]-1;
+			document.getElementById('link_go').href=index_file_name+'#i'+num_galerie+'-';
+			var onclick_func='change_page("i'+num_galerie+'-';
+			if(!isNaN(document.getElementById('start_img').value)){
+				document.getElementById('link_go').href+=document.getElementById('start_img').value;
+				onclick_func+=document.getElementById('start_img').value;
+			}else{
+				document.getElementById('link_go').href+=1;
+				onclick_func+=1;
+			}
+			document.getElementById('link_go').setAttribute("onclick",onclick_func+'"); return false;');
+		}
+
+		function up_link2(num_img){
+			document.getElementById('link_go').href=index_file_name+'#i'+document.getElementById('start_galerie').value+'-';
+			var onclick_func='change_page("i'+document.getElementById('start_galerie').value+'-';
+			if(!isNaN(num_img)){
+				document.getElementById('link_go').href+=num_img;
+				onclick_func+=num_img;
+			}else{
+				document.getElementById('link_go').href+=1;
+				onclick_func+=1;
+			}
+			document.getElementById('link_go').setAttribute("onclick",onclick_func+'"); return false;');
+		}
+
+		function start(){
+
+			var num = 1;
+			if(window.location.hash.substring(window.location.hash.indexOf("-")+1) != ""){
+				num = window.location.hash.substring(window.location.hash.indexOf("-")+1);
+				if(isNaN(num)){
+					num = 0;
+				}
+			}
+
+			var index_liste_nb = 0;
+			if(window.location.hash.substring(2, window.location.hash.indexOf("-")) != ""){
+				index_liste_nb = window.location.hash.substring(2, window.location.hash.indexOf("-"));
+				if(isNaN(index_liste_nb)){
+					index_liste_nb =0;
+				}
+			}
+			
+			document.title = liste_nb[index_liste_nb][0].substr(2,liste_nb[index_liste_nb][0].length-3);
+
+			var select_liste = '<a href="'+index_file_name+'" onclick="change_page(\'\'); return false;" title="Retour" class="back">↩</a> '
+								+' <select id="start_galerie" onchange="up_link1(this.value);">';
+			for(var i=0; liste_nb[i]!= undefined && liste_nb[i]!= false; i++){
+				select_liste += '   <option value="'+i+'"';
+				if(index_liste_nb==i){
+					select_liste += ' selected="selected"';
+				}
+				select_liste += '>'+liste_nb[i][0].substr(2,liste_nb[i][0].length-3)+' ( '+liste_nb[i][2]+' imgs )'+'</option>';
+			}
+			select_liste += '</select> images : <input id="start_img" value="'+num+'" placeholder="1 à '+(liste_nb[index_liste_nb][2]-1)+'" onchange="up_link2(this.value);"/> <a href="'+index_file_name+'#i'+index_liste_nb+'-'+num+'" id="link_go" onclick="change_page(\'i'+index_liste_nb+'-'+num+'\'); return false;">Go</a>';
+
+			document.getElementById('top_menu').innerHTML = select_liste;
+
+			if(liste_serie_index_next > liste_nb[index_liste_nb][1]){
+				liste_serie_index_next = liste_nb[index_liste_nb][1];
+			}
+			get_file(liste_serie_index_next, load_mini, 30);
+		}
+
+
+
+		/* ######################################################################################################################
+		* 			Functions	page image
+		* ###################################################################################################################### */
+
+
+	 	function next_url(increm){
+			var big_photo_a = document.getElementById('big_pict_a');
+			var big_photo = big_photo_a.children[0];
+
+
+			load_mini2(1);
+			if(document.getElementById(big_photo.id.substring(2)) != undefined && document.getElementById(big_photo.id.substring(2)).parentElement){
+				var a = document.getElementById(big_photo.id.substring(2)).parentElement.nextElementSibling;
+				for (var i = 1; i < increm && a != null; i++) {
+					load_mini2(1); //FIXME
+					a = a.nextElementSibling;
+				};
+				if(a!=null){
+					var url = a.children[0].href;
+
+					big_photo.setAttribute("style", "background: black url('"+url+"') no-repeat center center; background-size: contain; -moz-background-size: contain; bottom: 0; height: 100%; left: 0; position: fixed; right: 230px; top: 0;");
+					big_photo_a.href = url;
+					var id = document.getElementById(big_photo.id.substring(2)).parentElement.nextElementSibling.children[0].id;
+					big_photo.id = "b_"+id;
+
+					update_links(a.children[0].title, 1);
+					a = id.split('_');
+					window.location.hash="s"+a[0]+'-'+((parseInt(a[1])-1)*100+parseInt(a[2])+1);
+
+					if(document.getElementById('galerie_mini').children.length > 16){
+						for (var i = document.getElementById('galerie_mini').children.length; i > 16; i--) {
+							document.getElementById('galerie_mini').removeChild(document.getElementById('galerie_mini').firstElementChild);
+							liste_cpt_prev++;
+							if(liste_cpt_prev>=100){
+								liste_cpt_prev>0;
+								liste_serie_index_prev++;
+							}
+						};
+
+					}
+				}
+			}
+
+			return false;
+		}
+
+
+		function previous_url(increm){
+			var big_photo_a = document.getElementById('big_pict_a');
+			var big_photo = big_photo_a.children[0];
+
+
+			reload_mini2(1);
+			if(document.getElementById(big_photo.id.substring(2)) != undefined && document.getElementById(big_photo.id.substring(2)).parentElement){
+				var a = document.getElementById(big_photo.id.substring(2)).parentElement.previousElementSibling;
+				for (var i = 1; i < increm && a != null; i++) {
+					reload_mini2(1); //FIXME
+					a = a.previousElementSibling;
+				};
+
+				if(a!=null){
+					var url = a.children[0].href;
+
+					big_photo.setAttribute("style", "background: black url('"+url+"') no-repeat center center; background-size: contain; -moz-background-size: contain; bottom: 0; height: 100%; left: 0; position: fixed; right: 230px; top: 0;");
+					big_photo_a.href = url;
+					var id = document.getElementById(big_photo.id.substring(2)).parentElement.previousElementSibling.children[0].id;
+					big_photo.id = "b_"+id;
+
+					update_links(a.children[0].title, 1);
+					a = id.split('_');
+					window.location.hash="s"+a[0]+'-'+((parseInt(a[1])-1)*100+parseInt(a[2])+1);
+
+					if(document.getElementById('galerie_mini').children.length > 16){
+						for (var i = document.getElementById('galerie_mini').children.length; i > 16; i--) {
+							document.getElementById('galerie_mini').removeChild(document.getElementById('galerie_mini').lastElementChild);
+						};
+
+					}
+				}
+			}
+
+			return false;
+		}
+
+		function switch_img(lien){ 
+			var big_photo_a = document.getElementById('big_pict_a');
+			var big_photo = big_photo_a.children[0];
+			big_photo_a.href = lien.href ;
+			big_photo.setAttribute("style", "background: black url('"+lien.href+"') no-repeat center center; background-size: contain; -moz-background-size: contain; bottom: 0; height: 100%; left: 0; position: fixed; right: 230px; top: 0;");
+
+			big_photo.id = "b_"+lien.id;
+			var a = lien.id.split('_');
+			window.location.hash="s"+a[0]+'-'+((parseInt(a[1])-1)*100+parseInt(a[2])+1);
+
+			update_links(lien.title, lien.id);
+
+			return false ;
+		}
+
+		function load_mini2(nb_img){
+			//var num = parseInt(document.getElementById('galerie_mini').lastElementChild.children[0].id);
+			//num++;
+			var url = get_next_img(load_mini2, nb_img);
+			for(var i=1; i<=nb_img && url != "false" && url != -1; i++){
+				var img_li = document.createElement('li');
+				img_li.innerHTML = '<a id="'+index_liste_nb+'_'+liste_serie_index_next+'_'+liste_cpt_next+'" href="'+folder+url+'" title="'+folder+url+'" onclick="switch_img(this);return false;"><img src="'+folder+(liste_nb[index_liste_nb][3]!=""?liste_nb[index_liste_nb][3]+"/":"")+url+'" alt="Chargement..." width="200px"/></a>';
+				document.getElementById('galerie_mini').appendChild(img_li);
+				//num++;
+				url =  get_next_img(load_mini2, nb_img-i);
+			}
+			return false;
+		}
+
+		function reload_mini2(nb_img){
+			//var num = parseInt(document.getElementById('galerie_mini').firstElementChild.children[0].id);
+			//num--;
+			var url = get_prev_img(reload_mini2, nb_img);
+			if(url != "false" && url != -1){
+				var img_li = '<li><a id="'+index_liste_nb+'_'+liste_serie_index_prev+'_'+liste_cpt_prev+'" href="'+folder+url+'" title="'+folder+url+'" onclick="switch_img(this);return false;"><img src="'+folder+(liste_nb[index_liste_nb][3]!=""?liste_nb[index_liste_nb][3]+"/":"")+url+'" alt="Chargement..." width="200px"/></a></li>';
+				document.getElementById('galerie_mini').insertAdjacentHTML('afterBegin', img_li);
+				//num--;
+		//		url =  get_prev_img(reload_mini2, nb_img-i);
+			}
+			return false;
+		}
+
+
+		function firt_load(num){
+			document.title = liste_nb[index_liste_nb][0].substr(2,liste_nb[index_liste_nb][0].length-3);
+	 		var url = get_next_img(load_mini2, num);
+	 		if(url != -1){
+	 			url2=url;
+	 			url=folder+url;
+	 			var big_pict_a = document.getElementById('big_pict_a') ;
+			    big_pict_a.href = url;
+			    var big_pict = document.getElementById('big_pict') ;
+				big_pict.setAttribute("style","background: black url('"+url+"') no-repeat center center; background-size: contain; -moz-background-size: contain; bottom: 0; height: 100%; left: 0; position: fixed; right: 230px; top: 0;");
+				big_pict.id = "b_"+index_liste_nb+'_'+liste_serie_index_next+'_'+liste_cpt_next;
+
+				var img_li = document.createElement('li');
+				img_li.innerHTML  = '<a id="'+index_liste_nb+'_'+liste_serie_index_next+'_'+liste_cpt_next+'" href="'+url+'" title="'+url+'" onclick="switch_img(this);return false;"><img src="'+folder+(liste_nb[index_liste_nb][3]!=""?liste_nb[index_liste_nb][3]+"/":"")+url2+'" alt="Chargement..." width="200px"/></a>';
+				update_links(url, num);
+				document.getElementById('galerie_mini').appendChild(img_li);
+				document.getElementById('galerie_mini').onscroll = function(){
+					if(document.getElementById('galerie_mini').scrollTop + 1000>= document.getElementById('galerie_mini').scrollHeight){
+						load_mini2(15);
+					}
+				};
+
+				load_mini2(15);
+			 }
+	 	}
+
+		function update_links(url, id){
+			document.getElementById('url_txt').innerHTML=url.substr(2).replace('/', '<br/><p style="margin-left:45px; margin-top:0px">')+"</p>";
+            document.getElementById('link_back').href = index_file_name+'#i'+index_liste_nb+'-'+id;
+            document.getElementById('link_back').setAttribute("onclick",'change_page(\'i'+index_liste_nb+'-'+id+'\'); return false;');
+		}
+
+
+		/* ######################################################################################################################
+		* 			init variable
+		* ###################################################################################################################### */
+
+		var index_file_name="index.html";
+
+		var can_load=true;
+		var view_one=false;
+		var unlock = true;
+
+		var can_reload=false;
+		var liste_index = [];
+		var file_downloding=false;
+		var unlock_get_liste = true;
+
+		var liste=[];
+		var liste_cpt_next = 0;
+		var liste_serie_index_next = 1;
+		var liste_cpt_prev = 0;
+		var liste_serie_index_prev = 1;
+
+		var liste_nb=[];
+		var index_liste_nb=0;
+		var folder="";
+
+		/* ######################################################################################################################
+		* 			pages
+		* ###################################################################################################################### */
+
+
+
+
+		function page_index(){
+			var contenu = '<div class="center">';
+			contenu +="<table><tr><th>Galerie</th><th>Nb images</th></tr>" ; 
+
+
+
+			for(var i=0; liste_nb[i]!= undefined && liste_nb[i]!= false; i++){
+			
+				contenu += '<tr><td><a href="'+index_file_name+'#i'+i+'-1" onclick="change_page(\'i'+i+'-1\'); return false;">'+liste_nb[i][0].substr(2,liste_nb[i][0].length-3)+'</a></td><td>'+liste_nb[i][2]+'</td></tr>';
+			}
+			contenu+='</table></div>';
+			document.body.innerHTML  = contenu;
+		}
+
+		function page_galerie(){
+			document.body.innerHTML = '<div id="top_menu">'
+				+'</div>'
+				+'<div id="galerie_mini">'
+				+'<ul id="all_img"></ul>'
+					+'<div id="galerie_more"><a href="#" onclick="load_mini(15, false);return false;">Suite</a></div>'
+				+'</div>'
+				;
+
+
+			document.getElementById('galerie_mini').onscroll = function(){
+				if(document.getElementById('galerie_mini').scrollTop +1500 >= document.getElementById('galerie_mini').scrollHeight ){
+					load_mini(15, false);
+				}else if(document.getElementById('galerie_mini').scrollTop <= 300 ){
+					
+					// FIXME pas au point
+					// reload_mini(15, false);
+
+				}
+			};
+
+			var num = 1;
+			if(window.location.hash.substring(window.location.hash.indexOf("-")+1) != ""){
+				num = window.location.hash.substring(window.location.hash.indexOf("-")+1);
+				if(!isNaN(num)){
+					liste_serie_index_next = Math.floor(num/100)+1;
+					liste_cpt_next = num%100-1;
+				}
+			}
+			if(liste_serie_index_next<1){
+				liste_serie_index_next = 1;
+			}
+
+			if(liste_cpt_next<0){
+				liste_cpt_next = 0;
+			}
+			liste_cpt_next--;
+
+			index_liste_nb = 0;
+			if(window.location.hash.substring(2, window.location.hash.indexOf("-")) != ""){
+				index_liste_nb = window.location.hash.substring(2, window.location.hash.indexOf("-"));
+				if(isNaN(index_liste_nb)){
+					index_liste_nb =0;
+				}
+			}
+
+			if(liste_nb!=""){
+				folder=liste_nb[index_liste_nb][0];
+				start();
+			}else{
+				file_downloding=true;
+				var xmlHttp = getXMLHttp();
+				xmlHttp.onreadystatechange = function(){
+					if(xmlHttp.readyState == 4){
+						liste_nb = eval(xmlHttp.responseText);
+						folder=liste_nb[index_liste_nb][0];
+						start();
+					}
+				};
+				xmlHttp.open("GET", "liste_nb.txt", true);	
+			 	xmlHttp.send(null);
+			 }
+		}
+
+		function page_image(){
+			document.body.innerHTML = '<div id="image_grande">'
+			+'		<a href="" id="big_pict_a" target="_blank">'
+			+'			<div id="big_pict" style=""></div>'
+			+'		</a>'
+			+'    </div>'
+			+'	<div id="galerie">'
+			+'		<ul id="galerie_mini">'
+			+'		</ul>'
+			+'		<div id="boutons">'
+			+'			<div id="url_txt"></div>'
+			+'			<a class="link_change_img" href="./'+index_file_name+'" onclick="change_page(\'\'); return false;" title="Retour" id="link_back" class="back">↩</a><br/><br/><br/>'
+			+'			<a class="link_change_img" href="#" onclick="previous_url(15); return false;" title="15ème image précédente ">≪</a>&nbsp;'
+			+'			<a class="link_change_img" href="#" onclick="previous_url(1); return false;" title="Image précédente">&lt;</a>&nbsp;'
+			+'			<a class="link_change_img" href="#" onclick="next_url(1); return false;" title="Image suivante">&gt;</a>&nbsp;'
+			+'			<a class="link_change_img" href="#" onclick="next_url(15); return false;" title="15ème image suivante">≫</a><br/>'
+			+'		</div>'
+			+'	</div>';
+		
+			var num = 1;
+			if(window.location.hash.substring(window.location.hash.indexOf("-")+1) != ""){
+				num = window.location.hash.substring(window.location.hash.indexOf("-")+1);
+				/*if(isNaN(num)){
+					num =1;
+				}else if(num==0){
+					num++;
+				}*/
+				if(!isNaN(num)){
+					liste_serie_index_next = Math.floor(num/100)+1;
+					liste_cpt_next = num%100-1;
+				}
+			}
+			if(liste_serie_index_next<1){
+				liste_serie_index_next = 1;
+			}
+
+			if(liste_cpt_next<0){
+				liste_cpt_next = 0;
+			}
+			liste_cpt_next--;
+
+			liste_serie_index_prev=liste_serie_index_next;
+			liste_cpt_prev=num-1;
+
+			index_liste_nb = 0;
+			if(window.location.hash.substring(2, window.location.hash.indexOf("-")) != ""){
+				index_liste_nb = window.location.hash.substring(2, window.location.hash.indexOf("-"));
+				if(isNaN(index_liste_nb)){
+					index_liste_nb =0;
+				}
+			}
+
+			if(liste_nb!=""){
+				folder=liste_nb[index_liste_nb][0];
+				get_file(liste_serie_index_next, firt_load, num);
+			}else{
+				var xmlHttp = getXMLHttp();
+				xmlHttp.onreadystatechange = function(){
+					if(xmlHttp.readyState == 4){
+						liste_nb = eval(xmlHttp.responseText);
+						folder=liste_nb[index_liste_nb][0];
+						get_file(liste_serie_index_next, firt_load, num);
+					}
+				};
+				xmlHttp.open("GET", "liste_nb.txt", true);	
+			 	xmlHttp.send(null);
+			 }			
+		}
+
+
+		function init(){
+			can_load=true;
+			view_one=false;
+			unlock = true;
+
+			can_reload=false;
+			liste_index = []; //FIXME conflie entre les galeries
+			file_downloding=false;
+			unlock_get_liste = true;
+
+			liste=[];
+			liste_cpt_next = 0;
+			liste_serie_index_next = 1;
+			liste_cpt_prev = 0;
+			liste_serie_index_prev = 1;
+
+			index_liste_nb=0;
+
+			if(window.location.hash.substring(1) != "" && window.location.hash.substring(1,2) == "s"){
+				page_image();
+			}else if(window.location.hash.substring(1) != "" && window.location.hash.substring(1,2) == "i"){
+				page_galerie();
+			}else{
+				if(liste_nb!=""){
+					if(liste_nb.length==2){
+						window.location.hash="i0-1";
+						page_galerie();
+					}else{
+						page_index();
+					}
+				}else{
+					file_downloding=true;
+					var xmlHttp = getXMLHttp();
+					xmlHttp.onreadystatechange = function(){
+						if(xmlHttp.readyState == 4){
+							liste_nb = eval(xmlHttp.responseText);
+							if(liste_nb.length==2){
+								window.location.hash="i0-1";
+								page_galerie();
+							}else{
+								page_index();
+							}
+							
+						}
+					};
+					xmlHttp.open("GET", "liste_nb.txt", true);	
+				 	xmlHttp.send(null);
+				 }				
+			}
+		}
+
+
+
+		if( navigator.appName == "Microsoft Internet Explorer"){
+			document.body.innerHTML = "Vous utilisez un navigateur qui est à chier (Internet Explorer).<br/>Merci d'installer un vrai navigateur qui affiche correctement les pages !<br/>En voici un qui est bien : <a href='https://www.mozilla.org/fr/firefox/new/'>Firefox</a><br/><br/><a href='#' onclick='init(); return false;''>Voir quand même ce que ça donne avec IE</a>";
+		}else{
+			init();
+		}
+</script>
+</body>
+</html>
