@@ -1,12 +1,44 @@
 #!/bin/bash
 
-mini_w="" #200x
-mini_h="" #x200
-
-#for i in *.jpg; do convert $i -resize 200x ./${mini_w}/${i}; done
-#for i in *.jpg; do convert $i -resize x200 ./${mini_h}/${i}; done
-
-folders="./*/"
+folders="./*/" # ne pas supprimer le dernier /
+home=`pwd`
+read -p "Utilise t'on des miniatures ? (o/n) " rep
+if [ "$rep" == "o" ]; then
+	echo "Utilisation de miniatures..."
+	if which convert >/dev/null; then
+		mini_w="200x"
+		mini_h="x200"
+		echo "Génération des miniatures. Cela peut prendre plusieurs minutes..."
+		for folder in $folders; do
+			if [ -d "$folder" ]; then
+				cd $folder
+				if [ ! -d ${mini_w} ]; then
+					mkdir ${mini_w}
+				fi
+				if [ ! -d ${mini_h} ]; then
+					mkdir ${mini_h}
+				fi
+				for i in *.jpg; do
+					if [ ! -f ${mini_w}/$i ]; then
+						convert $i -resize 200x ${mini_w}/${i}
+					fi
+					if [ ! -f ${mini_h}/$i ]; then
+						convert $i -resize 200x ${mini_h}/${i}
+					fi
+				done
+			fi
+		done
+		cd $home
+	else
+        echo "Merci d'installer imagemagick !"
+        echo "apt-get install imagemagick"
+        exit
+    fi
+else
+	echo "Pas de miniatures"
+	mini_w=""
+	mini_h=""
+fi
 echo "[" > liste_nb.txt
 for folder in $folders; do
 	if [ -d "$folder" ]; then
@@ -32,3 +64,5 @@ for folder in $folders; do
 	fi
 done
 echo "false]" >> liste_nb.txt
+echo "Fin de la génération des listes"
+echo "Vous pouvez lancer la galerie :-)"
