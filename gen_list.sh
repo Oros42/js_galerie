@@ -11,24 +11,24 @@ if [ "$rep" == "o" ]; then
 		echo "Génération des miniatures. Cela peut prendre plusieurs minutes..."
 		for folder in $folders; do
 			if [ -d "$folder" ]; then
-				cd $folder
-				if [ ! -d ${mini_w} ]; then
-					mkdir ${mini_w}
+				cd "$folder"
+				if [ ! -d "${mini_w}" ]; then
+					mkdir "${mini_w}"
 				fi
-				if [ ! -d ${mini_h} ]; then
-					mkdir ${mini_h}
+				if [ ! -d "${mini_h}" ]; then
+					mkdir "${mini_h}"
 				fi
 				for i in *.jpg; do
-					if [ ! -f ${mini_w}/$i ]; then
-						convert $i -resize 200x ${mini_w}/${i}
+					if [ ! -f "${mini_w}/$i" ]; then
+						convert "$i" -resize 200x "${mini_w}/${i}"
 					fi
-					if [ ! -f ${mini_h}/$i ]; then
-						convert $i -resize 200x ${mini_h}/${i}
+					if [ ! -f "${mini_h}/$i" ]; then
+						convert "$i" -resize 200x "${mini_h}/${i}"
 					fi
 				done
 			fi
 		done
-		cd $home
+		cd "$home"
 	else
         echo "Merci d'installer imagemagick !"
         echo "apt-get install imagemagick"
@@ -48,7 +48,7 @@ for folder in $folders; do
 		rm liste_*.txt
 		echo "[" > liste_${num}.txt
 		for i in *.{jpg,png,gif}; do
-			if [ -f $i ]; then
+			if [ -f "$i" ]; then
 				echo "'$i'," >> liste_${num}.txt
 				cpt=$(($cpt + 1))
 				if [ $cpt -gt $((100 * $num)) ]; then
