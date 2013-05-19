@@ -24,13 +24,14 @@ if [ "$rep" == "o" ]; then
 							convert "$i" -resize 200x "${mini_w}/${i}"
 						fi
 						if [ ! -f "${mini_h}/$i" ]; then
-							convert "$i" -resize 200x "${mini_h}/${i}"
+							convert "$i" -resize x200 "${mini_h}/${i}"
 						fi
 					fi
 				done
 				cd ..
 			fi
 		done
+		echo "Fin de la génération des miniatures."
 		cd "$home"
 	else
         echo "Merci d'installer imagemagick !"
@@ -41,6 +42,10 @@ else
 	echo "Pas de miniatures"
 	mini_w=""
 	mini_h=""
+fi
+echo "Génération des listes ..."
+if [ -f liste_nb.txt ]; then
+    cp liste_nb.txt liste_nb.txt.bak
 fi
 echo "[" > liste_nb.txt
 for folder in $folders; do

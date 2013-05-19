@@ -662,19 +662,18 @@
 
 		function page_index(){
 			var contenu = '<div class="center">';
-			contenu +="<table><tr><th>Galerie</th><th>Nb images</th></tr>" ; 
-
-
-
+			contenu += "<table><tr><th>Galerie</th><th>Nb images</th></tr>" ; 
+			var img_sum=0;
 			for(var i=0; liste_nb[i]!= undefined && liste_nb[i]!= false; i++){
 			
 				contenu += '<tr><td><a href="'+index_file_name+'#i'+i+'-1" onclick="change_page(\'i'+i+'-1\'); return false;">'+liste_nb[i][0].substr(2,liste_nb[i][0].length-3)
 				if(liste_nb[i][5]!=undefined){
 					contenu += '<br/><img src="'+liste_nb[i][0]+liste_nb[i][5]+'" alt="" height="200">';
 				}
-				contenu +='</a><br/>&nbsp;</td><td>'+liste_nb[i][2]+'</td></tr>';
+				contenu += '</a><br/>&nbsp;</td><td>'+liste_nb[i][2]+'</td></tr>';
+				img_sum += parseInt(liste_nb[i][2])
 			}
-			contenu+='</table></div>';
+			contenu+='<tr><td></td><td>= '+img_sum+'</td></tr></table></div>';
 			document.body.innerHTML  = contenu;
 		}
 
