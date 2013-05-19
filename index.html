@@ -154,13 +154,13 @@
 
 		table a{
 			position: relative;
-    			background-color: #333333;
-			padding: 1px 84px;
+    		//background-color: #333333;
+			//padding: 1px 84px;
 
 		}
 		table a:hover{
-	    		background-color: #555555;
-			padding: 1px 84px;
+	    	//background-color: #555555;
+			//padding: 1px 84px;
 		}
 		table {
 			margin-left: auto;
@@ -668,7 +668,11 @@
 
 			for(var i=0; liste_nb[i]!= undefined && liste_nb[i]!= false; i++){
 			
-				contenu += '<tr><td><a href="'+index_file_name+'#i'+i+'-1" onclick="change_page(\'i'+i+'-1\'); return false;">'+liste_nb[i][0].substr(2,liste_nb[i][0].length-3)+'</a></td><td>'+liste_nb[i][2]+'</td></tr>';
+				contenu += '<tr><td><a href="'+index_file_name+'#i'+i+'-1" onclick="change_page(\'i'+i+'-1\'); return false;">'+liste_nb[i][0].substr(2,liste_nb[i][0].length-3)
+				if(liste_nb[i][5]!=undefined){
+					contenu += '<br/><img src="'+liste_nb[i][0]+liste_nb[i][5]+'" alt="" height="200">';
+				}
+				contenu +='</a><br/>&nbsp;</td><td>'+liste_nb[i][2]+'</td></tr>';
 			}
 			contenu+='</table></div>';
 			document.body.innerHTML  = contenu;

@@ -64,8 +64,15 @@ for folder in $folders; do
 			fi
 		done
 		echo "false]" >> liste_${num}.txt
+		echo "['${folder}',${num},${cpt},'${mini_w}','${mini_h}'" >> ../liste_nb.txt
+		if [ -d "x200" ]; then 
+			 set -- `ls x200/*.*`
+			 if [ $1 != "" ]; then 
+			 	echo ",'$1'" >> ../liste_nb.txt
+			 fi
+		fi
+		echo "]," >> ../liste_nb.txt
 		cd ..
-		echo "['${folder}',${num},${cpt},'${mini_w}','${mini_h}']," >> liste_nb.txt
 	fi
 done
 echo "false]" >> liste_nb.txt
