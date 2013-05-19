@@ -18,14 +18,17 @@ if [ "$rep" == "o" ]; then
 				if [ ! -d "${mini_h}" ]; then
 					mkdir "${mini_h}"
 				fi
-				for i in *.jpg; do
-					if [ ! -f "${mini_w}/$i" ]; then
-						convert "$i" -resize 200x "${mini_w}/${i}"
-					fi
-					if [ ! -f "${mini_h}/$i" ]; then
-						convert "$i" -resize 200x "${mini_h}/${i}"
+				for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
+					if [ ${i:0:2} != "*." ]; then
+						if [ ! -f "${mini_w}/$i" ]; then
+							convert "$i" -resize 200x "${mini_w}/${i}"
+						fi
+						if [ ! -f "${mini_h}/$i" ]; then
+							convert "$i" -resize 200x "${mini_h}/${i}"
+						fi
 					fi
 				done
+				cd ..
 			fi
 		done
 		cd "$home"
@@ -47,14 +50,16 @@ for folder in $folders; do
 		cd "$folder"
 		rm liste_*.txt
 		echo "[" > liste_${num}.txt
-		for i in *.{jpg,png,gif}; do
-			if [ -f "$i" ]; then
-				echo "'$i'," >> liste_${num}.txt
-				cpt=$(($cpt + 1))
-				if [ $cpt -gt $((100 * $num)) ]; then
-					echo "true]" >> liste_${num}.txt
-					num=$(($num + 1))
-					echo "[" > liste_${num}.txt
+		for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
+			if [ ${i:0:2} != "*." ]; then
+				if [ -f "$i" ]; then
+					echo "'$i'," >> liste_${num}.txt
+					cpt=$(($cpt + 1))
+					if [ $cpt -gt $((100 * $num)) ]; then
+						echo "true]" >> liste_${num}.txt
+						num=$(($num + 1))
+						echo "[" > liste_${num}.txt
+					fi
 				fi
 			fi
 		done
