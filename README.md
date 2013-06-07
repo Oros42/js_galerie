@@ -1,7 +1,7 @@
 js_galerie
 ==========
 
-Galerie photo en Javascript qui tient dans un unique fichier HTML.
+Galerie photo en Javascript qui tient dans un unique fichier HTML.  
 Créé pour visualiser en local ou via Internet des galeries comportant des milliers de photos.
 
 Exemple d'utilisation https://ecirtam.net/galerie/
@@ -135,6 +135,6 @@ false]
 Infos
 =====
 
-Développé avec Firefox sous GNU/Linux.
-Si vous testez la galerie, surveillez l'utilisation de la RAM.
+Développé avec Firefox sous GNU/Linux.  
+Si vous testez la galerie, surveillez l'utilisation de la RAM.  
 si votre navigateur à des fuites de mémoire, ça peut faire très mal !
