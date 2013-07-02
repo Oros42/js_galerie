@@ -1,8 +1,21 @@
 #!/bin/bash
 
+# ./gen_list.sh [o/n]
+# o : génère des miniatures
+# n : ne génère pas de miniatures
+
 folders="./*/" # ne pas supprimer le dernier /
 home=`pwd`
-read -p "Utilise t'on des miniatures ? (o/n) " rep
+
+if [ $# -eq 1 ]; then
+	if [ "$1" == "o" ]; then
+		rep="o"
+	else
+		rep="n"
+	fi
+else
+	read -p "Utilise t'on des miniatures ? (o/n) " rep
+fi
 if [ "$rep" == "o" ]; then
 	echo "Utilisation de miniatures..."
 	if which convert >/dev/null; then
