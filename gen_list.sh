@@ -34,10 +34,10 @@ if [ "$rep" == "o" ]; then
 				for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
 					if [ ${i:0:2} != "*." ]; then
 						if [ ! -f "${mini_w}/$i" ]; then
-							convert "$i" -resize 200x "${mini_w}/${i}"
+							convert "$i" -strip -interlace Plane -resize 200x "${mini_w}/${i}"
 						fi
 						if [ ! -f "${mini_h}/$i" ]; then
-							convert "$i" -resize x200 "${mini_h}/${i}"
+							convert "$i" -strip -interlace Plane -resize x200 "${mini_h}/${i}"
 						fi
 					fi
 				done
