@@ -57,42 +57,76 @@ else
 	mini_h=""
 fi
 echo "Génération des listes ..."
-if [ -f liste_nb.txt ]; then
-    cp liste_nb.txt liste_nb.txt.bak
-fi
-echo "[" > liste_nb.txt
-for folder in $folders; do
-	if [ -d "$folder" ]; then
-		num=1
-		cpt=1
-		cd "$folder"
-		rm liste_*.txt
-		echo "[" > liste_${num}.txt
-		for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
-			if [ ${i:0:2} != "*." ]; then
-				if [ -f "$i" ]; then
-					echo "'$i'," >> liste_${num}.txt
-					cpt=$(($cpt + 1))
-					if [ $cpt -gt $((100 * $num)) ]; then
-						echo "true]" >> liste_${num}.txt
-						num=$(($num + 1))
-						echo "[" > liste_${num}.txt
-					fi
+
+
+function gen_img_liste() {
+	num=1
+	cpt=1
+	cd "$1"
+	rm liste_*.txt
+	echo "[" > liste_${num}.txt
+	for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
+		if [ ${i:0:2} != "*." ]; then
+			if [ -f "$i" ]; then
+				echo "'$i'," >> liste_${num}.txt
+				cpt=$(($cpt + 1))
+				if [ $cpt -gt $((100 * $num)) ]; then
+					echo "true]" >> liste_${num}.txt
+					num=$(($num + 1))
+					echo "[" > liste_${num}.txt
 				fi
 			fi
-		done
-		echo "false]" >> liste_${num}.txt
-		echo "['${folder}',${num},${cpt},'${mini_w}','${mini_h}'" >> ../liste_nb.txt
-		if [ -d "x200" ]; then 
-			 set -- `ls x200/*.*`
-			 if [ "$1" != "" ]; then 
-			 	echo ",'$1'" >> ../liste_nb.txt
-			 fi
 		fi
-		echo "]," >> ../liste_nb.txt
-		cd ..
-	fi
-done
-echo "false]" >> liste_nb.txt
+	done
+	echo "false]" >> liste_${num}.txt
+}
+
+if [ -f liste_nb.txt ]; then
+    cp liste_nb.txt liste_nb.txt.bak
+
+    # suppr false]
+    # pas très jolie
+	sed -i "s/^false]$//" liste_nb.txt
+	set -- `wc -l liste_nb.txt`
+	sed -i "$1,/^$/d" liste_nb.txt # suppr le dernier retour à la ligne
+
+	for folder in $folders; do
+		if [ -d "$folder" ]; then
+			gen_img_liste "$folder"
+			found=$(grep -a "\['$folder'," ../liste_nb.txt)
+			if [ "$found" != "" ]; then
+				sed -i "s#$folder.*#${folder}',${num},${cpt},'${mini_w}','${mini_h}'#" ../liste_nb.txt
+			else
+				echo "['${folder}',${num},${cpt},'${mini_w}','${mini_h}'" >> ../liste_nb.txt
+				if [ -d "x200" ]; then 
+					 set -- `ls x200/*.*`
+					 if [ "$1" != "" ]; then 
+					 	echo ",'$1'" >> ../liste_nb.txt
+					 fi
+				fi
+				echo "]," >> ../liste_nb.txt
+			fi	
+			cd ..
+		fi
+	done
+	echo "false]" >> liste_nb.txt
+else
+	echo "[" > liste_nb.txt
+	for folder in $folders; do
+		if [ -d "$folder" ]; then
+			gen_img_liste "$folder"
+			echo "['${folder}',${num},${cpt},'${mini_w}','${mini_h}'" >> ../liste_nb.txt
+			if [ -d "x200" ]; then 
+				 set -- `ls x200/*.*`
+				 if [ "$1" != "" ]; then 
+				 	echo ",'$1'" >> ../liste_nb.txt
+				 fi
+			fi
+			echo "]," >> ../liste_nb.txt
+			cd ..
+		fi
+	done
+	echo "false]" >> liste_nb.txt
+fi
 echo "Fin de la génération des listes"
 echo "Vous pouvez lancer la galerie :-)"
