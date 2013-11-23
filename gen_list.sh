@@ -4,11 +4,33 @@
 # o : génère des miniatures
 # n : ne génère pas de miniatures
 
+gen_img_liste() {
+	num=1
+	cpt=1
+	cd "$1"
+	rm liste_*.txt
+	echo "[" > liste_${num}.txt
+	for i in *.jpg *.JPG *.png *.PGN *.gif *.GIF; do
+		if [ `echo |awk '{ print substr("'"${i}"'",0,2)}'` != "*." ]; then
+			if [ -f "$i" ]; then
+				echo "'$i'," >> liste_${num}.txt
+				cpt=$(($cpt + 1))
+				if [ $cpt -gt $((100 * $num)) ]; then
+					echo "true]" >> liste_${num}.txt
+					num=$(($num + 1))
+					echo "[" > liste_${num}.txt
+				fi
+			fi
+		fi
+	done
+	echo "false]" >> liste_${num}.txt
+}
+
 folders="./*/" # ne pas supprimer le dernier /
 home=`pwd`
 
 if [ $# -eq 1 ]; then
-	if [ "$1" == "o" ]; then
+	if [ "$1" = "o" ]; then
 		rep="o"
 	else
 		rep="n"
@@ -16,7 +38,8 @@ if [ $# -eq 1 ]; then
 else
 	read -p "Utilise t'on des miniatures ? (o/n) " rep
 fi
-if [ "$rep" == "o" ]; then
+
+if [ "$rep" = "o" ]; then
 	echo "Utilisation de miniatures..."
 	if which convert >/dev/null; then
 		mini_w="200x"
@@ -31,8 +54,8 @@ if [ "$rep" == "o" ]; then
 				if [ ! -d "${mini_h}" ]; then
 					mkdir "${mini_h}"
 				fi
-				for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
-					if [ ${i:0:2} != "*." ]; then
+				for i in *.jpg *.JPG *.png *.PGN *.gif *.GIF; do
+					if [ `echo |awk '{ print substr("'"${i}"'",0,2)}'` != "*." ]; then
 						if [ ! -f "${mini_w}/$i" ]; then
 							convert "$i" -strip -interlace Plane -resize 200x "${mini_w}/${i}"
 						fi
@@ -57,29 +80,6 @@ else
 	mini_h=""
 fi
 echo "Génération des listes ..."
-
-
-function gen_img_liste() {
-	num=1
-	cpt=1
-	cd "$1"
-	rm liste_*.txt
-	echo "[" > liste_${num}.txt
-	for i in *.{jpg,JPG,png,PGN,gif,GIF}; do
-		if [ ${i:0:2} != "*." ]; then
-			if [ -f "$i" ]; then
-				echo "'$i'," >> liste_${num}.txt
-				cpt=$(($cpt + 1))
-				if [ $cpt -gt $((100 * $num)) ]; then
-					echo "true]" >> liste_${num}.txt
-					num=$(($num + 1))
-					echo "[" > liste_${num}.txt
-				fi
-			fi
-		fi
-	done
-	echo "false]" >> liste_${num}.txt
-}
 
 if [ -f liste_nb.txt ]; then
     cp liste_nb.txt liste_nb.txt.bak
